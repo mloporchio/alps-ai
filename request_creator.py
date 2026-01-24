@@ -1,111 +1,45 @@
+"""
+Docstring per request_creator
+Author: Matteo Loporchio
+"""
+
 from web3 import Web3
+import config
 import json
-import time
+import sys
+import utils
 
-# Connect to local Geth node
-w3 = Web3(Web3.HTTPProvider('http://localhost:8545'))
+# Function for creating and submitting a new request.
+def create_request(contract_instance, user_account, message):
+    tx_hash = contract_instance.functions.newRequest(message).transact({'from': user_account})
+    return w3.eth.wait_for_transaction_receipt(tx_hash)
 
-# Check connection
-if not w3.is_connected():
-    print("Failed to connect to the node.")
-    exit()
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python request_creator.py <aggregator_address> <message>")
+        sys.exit(1)
+    
+    # Read the command line arguments
+    aggregator_address = Web3.to_checksum_address(sys.argv[1])
+    user_message = sys.argv[2]
+    print(f"Creating request with message: {user_message}")
 
-# Specify the contract address (replace with your deployed contract address)
-contract_address = '0xdB7d6AB1f17c6b31909aE466702703dAEf9269Cf'
-user_account = '0x71562b71999873DB5b286dF957af199Ec94617F7'
+    # Connect to local Geth node
+    w3 = Web3(Web3.HTTPProvider(config.GETH_PROVIDER))
+    if not w3.is_connected():
+        print("Error: failed to connect to the node.")
+        sys.exit(1)
 
-# ABI for the deployed contract
-contract_abi = json.loads('''[
-    {
-        "inputs": [
-            {
-                "internalType": "string",
-                "name": "message",
-                "type": "string"
-            }
-        ],
-        "name": "newRequest",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "requestId",
-                "type": "uint256"
-            }
-        ],
-        "name": "getRequestStatus",
-        "outputs": [
-            {
-                "internalType": "string",
-                "name": "message",
-                "type": "string"
-            },
-            {
-                "internalType": "address",
-                "name": "requester",
-                "type": "address"
-            },
-            {
-                "internalType": "bool",
-                "name": "served",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "uint256",
-                "name": "requestId",
-                "type": "uint256"
-            },
-            {
-                "indexed": true,
-                "internalType": "string",
-                "name": "message",
-                "type": "string"
-            }
-        ],
-        "name": "RequestCreated",
-        "type": "event"
-    }
-]''')
+    # Create a contract instance
+    contract_instance = w3.eth.contract(
+        address = aggregator_address,
+        abi = utils.load_abi("AGGREGATOR")
+    )
 
-# Create a contract instance
-contract = w3.eth.contract(address=contract_address, abi=contract_abi)
-
-# Create a new request
-def create_request(message):
-    # Call the newRequest function
-    tx_hash = contract.functions.newRequest(message).transact({'from': user_account})
-
-    # Wait for the transaction to be mined
-    tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-
-    # Print the transaction receipt
-    print(f'Transaction successful with hash: {tx_receipt.transactionHash.hex()}')
+    # Create a new request and submit it.
+    tx_receipt = create_request(contract_instance, Web3.to_checksum_address(config.USER_ACCOUNT), user_message)
+    print(f'Request created in transaction: {tx_receipt.transactionHash.hex()}')
 
     # Extract and print the new request ID
-    request_id = contract.events.RequestCreated().process_receipt(tx_receipt)[0]['args']['requestId']
-    print(f'New Request ID assigned: {request_id}')
-
-# Execute the function to create a request
-num_requests = 60
-for i in range(0, num_requests):
-    message = f"Hello world! (seq: {i})"
-    create_request(message)
-    time.sleep(2) # wait for two seconds
+    count = contract_instance.functions.getRequestCount().call()
+    print(f"There are currently {count} requests.")
