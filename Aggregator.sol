@@ -10,8 +10,17 @@ contract Aggregator {
         bool served;
     }
 
+    // Struct for (userId, balance) entries
+    struct Entry {
+        uint256 userId;
+        uint256 balance;
+    }
+
+    // Mapping from userId to balance
+    mapping(uint256 => uint256) private balances;
+
     // Mapping from request ID to Request struct
-    mapping(uint256 => Request) public requests;
+    mapping(uint256 => Request) private requests;
 
     // Tracks the total number of requests
     uint256 private requestCount;
@@ -39,12 +48,19 @@ contract Aggregator {
         return requestCount;
     }
 
-    // Serves a request by its ID
+    // Serves a request by its ID and applies balance updates
     // TODO: Implement access control to restrict who can serve requests
-    function serveRequest(uint256 requestId) external {
+    function serveRequest(uint256 requestId, Entry[] calldata entries) external {
         require(requestId > 0 && requestId <= requestCount, "Invalid request");
         require(!requests[requestId].served, "Already served");
 
+        // Update balances
+        for (uint256 i = 0; i < entries.length; i++) {
+            Entry calldata e = entries[i];
+            balances[e.userId] += e.balance;
+        }
+
+        // Mark the request as served
         requests[requestId].served = true;
         emit RequestServed(requestId);
     }
