@@ -2,7 +2,7 @@
 
 This project implements a decentralized AI model training data attribution system using blockchain technology. 
 
-## Technologies used
+## Technologies used
 
 The project uses the following languages and technologies:
 
