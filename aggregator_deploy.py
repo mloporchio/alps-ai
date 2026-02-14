@@ -1,5 +1,5 @@
 """
-Docstring per aggregator_deploy
+Python script for deploying the Aggregator contract on the local Ethereum network.
 Author: Matteo Loporchio
 """
 
