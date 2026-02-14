@@ -30,4 +30,4 @@ The Aggregator contract is a Solidity smart contract that manages requests for d
 
 - `model/model_attributor.py`: This script can be used for computing the data attribution result for a given model output. The script takes a file containing the model output as input, and outputs a text file containing the data attribution scores.
 
-- `model/model_service.py`: This script 
+- `model/model_service.py`: This script can be used for running the model as a service. It loads the model and provides a REST API for querying the model.
