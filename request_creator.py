@@ -15,14 +15,16 @@ def create_request(contract_instance, user_account, message):
     return w3.eth.wait_for_transaction_receipt(tx_hash)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python request_creator.py <aggregator_address> <message>")
+    if len(sys.argv) != 2:
+        print("Usage: python request_creator.py <message>")
         sys.exit(1)
-    
+
     # Read the command line arguments
-    aggregator_address = Web3.to_checksum_address(sys.argv[1])
-    user_message = sys.argv[2]
+    user_message = sys.argv[1]
     print(f"Creating request with message: {user_message}")
+
+    # Read the aggregator contract address
+    aggregator_address = Web3.to_checksum_address(utils.read_aggregator_address())
 
     # Connect to local Geth node
     w3 = Web3(Web3.HTTPProvider(config.GETH_PROVIDER))

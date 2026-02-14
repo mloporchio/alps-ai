@@ -10,4 +10,4 @@ if [ ! -f "$GETH_PATH" ]; then
 fi
 
 # Start geth with specified options
-${GETH_PATH} --dev --http --http.api eth,net,web3,personal --http.addr ${HTTP_ADDR} --http.port ${HTTP_PORT} console
+${GETH_PATH} --dev --http --http.api eth,net,web3 --http.addr ${HTTP_ADDR} --http.port ${HTTP_PORT} console

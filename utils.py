@@ -25,3 +25,9 @@ def load_bytecode(contract_name):
         return contract_bytecode
     else:
         raise ValueError(f"Unknown contract name: {contract_name}")
+
+def read_aggregator_address():
+    address = None
+    with open(config.AGGREGATOR_ACCOUNT_FILE, 'r') as addr_file:
+        address = addr_file.read().strip()
+    return address
